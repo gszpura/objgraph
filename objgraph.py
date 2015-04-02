@@ -237,6 +237,29 @@ def show_growth(limit=10, peak_stats={}, shortnames=True):
             print('%-*s%9d %+9d' % (width, name, stats[name], delta))
 
 
+def get_growth(limit=10, peak_stats={}, shortnames=True):
+    """Like show_growth but it returns results instead of printing it.
+    """
+    gc.collect()
+    stats = typestats(shortnames=shortnames)
+    deltas = {}
+    for name, count in iteritems(stats):
+        old_count = peak_stats.get(name, 0)
+        if count > old_count:
+            deltas[name] = count - old_count
+            peak_stats[name] = count
+    deltas = sorted(deltas.items(), key=operator.itemgetter(1),
+                    reverse=True)
+    if limit:
+        deltas = deltas[:limit]
+    results = []
+    if deltas:
+        width = max(len(name) for name, count in deltas)
+        for name, delta in deltas:
+            results.append('%-*s%9d %+9d' % (width, name, stats[name], delta))
+    return results
+
+
 def get_leaking_objects(objects=None):
     """Return objects that do not have any referents.
 
